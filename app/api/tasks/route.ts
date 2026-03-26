@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getFriendlyDatabaseError } from '@/lib/databaseError'
 import { createServerSupabase, getAccessToken } from '@/lib/supabaseServer'
 
 export const dynamic = 'force-dynamic'
@@ -41,7 +42,8 @@ export async function GET(request: Request) {
     .order('id', { ascending: true })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const friendlyError = getFriendlyDatabaseError(error)
+    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
   }
 
   return NextResponse.json(data ?? [])
@@ -71,7 +73,8 @@ export async function POST(request: Request) {
     .single()
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const friendlyError = getFriendlyDatabaseError(error)
+    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
   }
 
   return NextResponse.json(data, { status: 201 })

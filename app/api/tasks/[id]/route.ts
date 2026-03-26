@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getFriendlyDatabaseError } from '@/lib/databaseError'
 import { createServerSupabase, getAccessToken } from '@/lib/supabaseServer'
 
 export const dynamic = 'force-dynamic'
@@ -68,8 +69,12 @@ export async function PATCH(
     .single()
 
   if (error) {
-    const status = error.code === 'PGRST116' ? 404 : 500
-    return NextResponse.json({ error: error.message }, { status })
+    if (error.code === 'PGRST116') {
+      return NextResponse.json({ error: error.message }, { status: 404 })
+    }
+
+    const friendlyError = getFriendlyDatabaseError(error)
+    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
   }
 
   return NextResponse.json(data)
@@ -99,7 +104,8 @@ export async function DELETE(
     .eq('user_id', auth.user.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const friendlyError = getFriendlyDatabaseError(error)
+    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
   }
 
   if (!count) {

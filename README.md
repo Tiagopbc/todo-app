@@ -12,7 +12,7 @@ Aplicacao em Next.js App Router com Supabase Auth, operacoes CRUD de tarefas e d
 
 ## Configuracao do banco no Supabase
 
-Antes de usar a nova versao, execute este SQL no editor do Supabase:
+Antes de usar a nova versao, execute o SQL em `supabase/setup.sql` no editor do Supabase:
 
 ```sql
 alter table public.tasks
