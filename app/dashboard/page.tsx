@@ -4,40 +4,9 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import StatsCards from '@/components/StatsCards'
+import { getStats } from '@/lib/taskApiClient'
 import { supabase } from '@/lib/supabaseClient'
 import type { TaskStats } from '@/lib/tasks'
-
-function getErrorMessage(body: unknown, fallback: string) {
-  if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string') {
-    return body.error
-  }
-
-  return fallback
-}
-
-async function getStats(): Promise<TaskStats> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    throw new Error('Sessao nao encontrada.')
-  }
-
-  const response = await fetch('/api/stats', {
-    cache: 'no-store',
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-    },
-  })
-  const body: unknown = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(getErrorMessage(body, 'Nao foi possivel carregar as estatisticas.'))
-  }
-
-  return body as TaskStats
-}
 
 export default function DashboardPage() {
   const [session, setSession] = useState<Session | null>(null)

@@ -1,34 +1,23 @@
 import { NextResponse } from 'next/server'
-import { getFriendlyDatabaseError } from '@/lib/databaseError'
-import { createServerSupabase, getAccessToken } from '@/lib/supabaseServer'
+import { authenticateRequest, hasAuthenticationFailure } from '@/lib/server/auth'
+import { createDatabaseErrorResponse } from '@/lib/server/databaseResponse'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
-  const accessToken = getAccessToken(request)
+  const auth = await authenticateRequest(request)
 
-  if (!accessToken) {
-    return NextResponse.json({ error: 'Sessao nao encontrada.' }, { status: 401 })
+  if (hasAuthenticationFailure(auth)) {
+    return auth.response
   }
 
-  const supabase = createServerSupabase(accessToken)
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    return NextResponse.json({ error: 'Sessao invalida.' }, { status: 401 })
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await auth.supabase
     .from('tasks')
     .select('done')
-    .eq('user_id', user.id)
+    .eq('user_id', auth.user.id)
 
   if (error) {
-    const friendlyError = getFriendlyDatabaseError(error)
-    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
+    return createDatabaseErrorResponse('GET /api/stats', error)
   }
 
   const total = data?.length ?? 0

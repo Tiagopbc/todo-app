@@ -5,6 +5,13 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import AuthPanel from '@/components/AuthPanel'
 import TaskList from '@/components/TaskList'
+import {
+  createTask,
+  deleteTask,
+  getStats,
+  getTasks,
+  updateTask,
+} from '@/lib/taskApiClient'
 import { supabase } from '@/lib/supabaseClient'
 import type { Task, TaskStats } from '@/lib/tasks'
 
@@ -28,151 +35,6 @@ const onboardingSteps = [
   'Adicione tarefas, marque o que foi concluido e remova o que nao faz mais sentido.',
   'Abra o dashboard quando quiser enxergar o andamento do dia.',
 ] as const
-
-function getErrorMessage(body: unknown, fallback: string) {
-  if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string') {
-    return body.error
-  }
-
-  return fallback
-}
-
-async function getTasks(): Promise<Task[]> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    throw new Error('Sessao nao encontrada.')
-  }
-
-  const response = await fetch('/api/tasks', {
-    cache: 'no-store',
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-    },
-  })
-  const body: unknown = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(getErrorMessage(body, 'Nao foi possivel carregar as tarefas.'))
-  }
-
-  return Array.isArray(body) ? (body as Task[]) : []
-}
-
-async function createTask(title: string) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    throw new Error('Sessao nao encontrada.')
-  }
-
-  const response = await fetch('/api/tasks', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({ title }),
-  })
-
-  const body: unknown = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(getErrorMessage(body, 'Nao foi possivel salvar a tarefa.'))
-  }
-}
-
-async function updateTask(taskId: number, done: boolean) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    throw new Error('Sessao nao encontrada.')
-  }
-
-  const response = await fetch(`/api/tasks/${taskId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({ done }),
-  })
-
-  const body: unknown = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(getErrorMessage(body, 'Nao foi possivel atualizar a tarefa.'))
-  }
-}
-
-async function deleteTask(taskId: number) {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    throw new Error('Sessao nao encontrada.')
-  }
-
-  const response = await fetch(`/api/tasks/${taskId}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-    },
-  })
-
-  const body: unknown = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(getErrorMessage(body, 'Nao foi possivel excluir a tarefa.'))
-  }
-}
-
-async function getStats(): Promise<TaskStats> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    throw new Error('Sessao nao encontrada.')
-  }
-
-  const response = await fetch('/api/stats', {
-    cache: 'no-store',
-    headers: {
-      Authorization: `Bearer ${session.access_token}`,
-    },
-  })
-  const body: unknown = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    throw new Error(getErrorMessage(body, 'Nao foi possivel carregar as estatisticas.'))
-  }
-
-  if (
-    !body ||
-    typeof body !== 'object' ||
-    !('total' in body) ||
-    !('completed' in body) ||
-    !('pending' in body) ||
-    !('completionRate' in body)
-  ) {
-    return {
-      total: 0,
-      completed: 0,
-      pending: 0,
-      completionRate: 0,
-    }
-  }
-
-  return body as TaskStats
-}
 
 export default function Home() {
   const [task, setTask] = useState('')

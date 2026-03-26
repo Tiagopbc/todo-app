@@ -36,6 +36,8 @@ for delete
 to authenticated
 using (auth.uid() = user_id);
 
+notify pgrst, 'reload schema';
+
 -- Se a tabela public.tasks ainda nao existir, crie-a com:
 --
 -- create table if not exists public.tasks (

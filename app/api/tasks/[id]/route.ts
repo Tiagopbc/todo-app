@@ -1,32 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getFriendlyDatabaseError } from '@/lib/databaseError'
-import { createServerSupabase, getAccessToken } from '@/lib/supabaseServer'
+import { authenticateRequest, hasAuthenticationFailure } from '@/lib/server/auth'
+import { createDatabaseErrorResponse } from '@/lib/server/databaseResponse'
 
 export const dynamic = 'force-dynamic'
-
-async function getAuthenticatedClient(request: Request) {
-  const accessToken = getAccessToken(request)
-
-  if (!accessToken) {
-    return {
-      response: NextResponse.json({ error: 'Sessao nao encontrada.' }, { status: 401 }),
-    }
-  }
-
-  const supabase = createServerSupabase(accessToken)
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    return {
-      response: NextResponse.json({ error: 'Sessao invalida.' }, { status: 401 }),
-    }
-  }
-
-  return { supabase, user }
-}
 
 function getTaskId(value: string) {
   const taskId = Number(value)
@@ -37,9 +13,9 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getAuthenticatedClient(request)
+  const auth = await authenticateRequest(request)
 
-  if ('response' in auth) {
+  if (hasAuthenticationFailure(auth)) {
     return auth.response
   }
 
@@ -70,11 +46,10 @@ export async function PATCH(
 
   if (error) {
     if (error.code === 'PGRST116') {
-      return NextResponse.json({ error: error.message }, { status: 404 })
+      return NextResponse.json({ error: 'Tarefa nao encontrada.' }, { status: 404 })
     }
 
-    const friendlyError = getFriendlyDatabaseError(error)
-    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
+    return createDatabaseErrorResponse('PATCH /api/tasks/[id]', error)
   }
 
   return NextResponse.json(data)
@@ -84,9 +59,9 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getAuthenticatedClient(request)
+  const auth = await authenticateRequest(request)
 
-  if ('response' in auth) {
+  if (hasAuthenticationFailure(auth)) {
     return auth.response
   }
 
@@ -104,8 +79,7 @@ export async function DELETE(
     .eq('user_id', auth.user.id)
 
   if (error) {
-    const friendlyError = getFriendlyDatabaseError(error)
-    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
+    return createDatabaseErrorResponse('DELETE /api/tasks/[id]', error)
   }
 
   if (!count) {

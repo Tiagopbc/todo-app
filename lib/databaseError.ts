@@ -1,9 +1,9 @@
-type DatabaseErrorLike = {
+export type DatabaseErrorLike = {
   message: string
   code?: string
 }
 
-type FriendlyDatabaseError = {
+export type FriendlyDatabaseError = {
   message: string
   status: number
 }
@@ -15,10 +15,16 @@ function includesMissingColumn(message: string, columnName: string) {
 export function getFriendlyDatabaseError(error: DatabaseErrorLike): FriendlyDatabaseError {
   const message = error.message.toLowerCase()
 
-  if (includesMissingColumn(message, 'done') || includesMissingColumn(message, 'user_id')) {
+  if (
+    includesMissingColumn(message, 'done') ||
+    includesMissingColumn(message, 'user_id') ||
+    message.includes("schema cache") ||
+    message.includes("could not find the 'done' column of 'tasks'") ||
+    message.includes("could not find the 'user_id' column of 'tasks'")
+  ) {
     return {
       status: 500,
-      message: 'O banco de dados ainda nao foi atualizado para esta versao do app. Execute o SQL de configuracao do projeto no Supabase e tente novamente.',
+      message: 'O schema do Supabase ainda nao refletiu esta versao do app. Execute o SQL de configuracao do projeto e recarregue o schema do PostgREST com NOTIFY pgrst, \'reload schema\'.',
     }
   }
 
@@ -38,6 +44,6 @@ export function getFriendlyDatabaseError(error: DatabaseErrorLike): FriendlyData
 
   return {
     status: 500,
-    message: error.message,
+    message: 'Nao foi possivel concluir a operacao agora. Tente novamente em instantes.',
   }
 }

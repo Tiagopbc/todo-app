@@ -1,37 +1,13 @@
 import { NextResponse } from 'next/server'
-import { getFriendlyDatabaseError } from '@/lib/databaseError'
-import { createServerSupabase, getAccessToken } from '@/lib/supabaseServer'
+import { authenticateRequest, hasAuthenticationFailure } from '@/lib/server/auth'
+import { createDatabaseErrorResponse } from '@/lib/server/databaseResponse'
 
 export const dynamic = 'force-dynamic'
 
-async function getAuthenticatedClient(request: Request) {
-  const accessToken = getAccessToken(request)
-
-  if (!accessToken) {
-    return {
-      response: NextResponse.json({ error: 'Sessao nao encontrada.' }, { status: 401 }),
-    }
-  }
-
-  const supabase = createServerSupabase(accessToken)
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    return {
-      response: NextResponse.json({ error: 'Sessao invalida.' }, { status: 401 }),
-    }
-  }
-
-  return { supabase, user }
-}
-
 export async function GET(request: Request) {
-  const auth = await getAuthenticatedClient(request)
+  const auth = await authenticateRequest(request)
 
-  if ('response' in auth) {
+  if (hasAuthenticationFailure(auth)) {
     return auth.response
   }
 
@@ -42,17 +18,16 @@ export async function GET(request: Request) {
     .order('id', { ascending: true })
 
   if (error) {
-    const friendlyError = getFriendlyDatabaseError(error)
-    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
+    return createDatabaseErrorResponse('GET /api/tasks', error)
   }
 
   return NextResponse.json(data ?? [])
 }
 
 export async function POST(request: Request) {
-  const auth = await getAuthenticatedClient(request)
+  const auth = await authenticateRequest(request)
 
-  if ('response' in auth) {
+  if (hasAuthenticationFailure(auth)) {
     return auth.response
   }
 
@@ -73,8 +48,7 @@ export async function POST(request: Request) {
     .single()
 
   if (error) {
-    const friendlyError = getFriendlyDatabaseError(error)
-    return NextResponse.json({ error: friendlyError.message }, { status: friendlyError.status })
+    return createDatabaseErrorResponse('POST /api/tasks', error)
   }
 
   return NextResponse.json(data, { status: 201 })
