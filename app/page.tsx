@@ -329,12 +329,11 @@ export default function Home() {
   return (
     <main className="page-shell">
       <section className="hero">
-        <p className="eyebrow">Desafio concluido em uma unica entrega</p>
-        <h1>Seu gerenciador de tarefas agora tem CRUD completo, autenticacao e indicadores.</h1>
-        <p>
+        <p className="eyebrow">Desafio</p>
+        <h1>
           Cada usuario visualiza apenas as proprias tarefas, marca itens como concluidos,
           remove registros e acompanha o progresso no dashboard.
-        </p>
+        </h1>
       </section>
 
       {!session ? (
