@@ -271,7 +271,10 @@ export default function Home() {
         <>
           <section className="hero hero-compact">
             <p className="eyebrow">Painel pessoal</p>
-            <h1>Sua rotina, organizada em um so lugar.</h1>
+            <h1 className="hero-title-compact">
+              <span>Sua rotina, organizada</span>
+              <span>em um so lugar.</span>
+            </h1>
             <p className="hero-lead">
               Adicione tarefas rapidamente, acompanhe o que ja foi concluido
               e abra o dashboard quando quiser uma leitura mais analitica do progresso.
