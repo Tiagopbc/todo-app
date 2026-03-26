@@ -65,24 +65,44 @@ export default function AuthPanel({ onAuthenticated }: AuthPanelProps) {
   }
 
   return (
-    <section className="panel">
-      <div className="panel-header">
+    <section className="panel panel-auth">
+      <div className="panel-header panel-header-compact">
         <div>
           <p className="eyebrow">Autenticacao</p>
           <h2>{mode === 'login' ? 'Entrar na sua conta' : 'Criar uma conta'}</h2>
         </div>
+      </div>
+
+      <div className="mode-toggle" aria-label="Modo de autenticacao">
         <button
-          className="ghost-button"
+          className={mode === 'login' ? 'mode-button mode-button-active' : 'mode-button'}
           onClick={() => {
-            setMode((currentMode) => (currentMode === 'login' ? 'signup' : 'login'))
+            setMode('login')
             setError(null)
             setMessage(null)
           }}
           type="button"
         >
-          {mode === 'login' ? 'Criar conta' : 'Ja tenho conta'}
+          Entrar
+        </button>
+        <button
+          className={mode === 'signup' ? 'mode-button mode-button-active' : 'mode-button'}
+          onClick={() => {
+            setMode('signup')
+            setError(null)
+            setMessage(null)
+          }}
+          type="button"
+        >
+          Criar conta
         </button>
       </div>
+
+      <p className="panel-copy">
+        {mode === 'login'
+          ? 'Acesse seu espaco para continuar de onde parou.'
+          : 'Crie sua conta para salvar tarefas e acompanhar seu progresso.'}
+      </p>
 
       <form className="stack-md" onSubmit={handleSubmit}>
         <label className="field">
@@ -116,6 +136,10 @@ export default function AuthPanel({ onAuthenticated }: AuthPanelProps) {
         <button className="primary-button" disabled={isSubmitting} type="submit">
           {isSubmitting ? 'Processando...' : mode === 'login' ? 'Entrar' : 'Cadastrar'}
         </button>
+
+        <p className="panel-note">
+          Seus dados ficam vinculados a sua conta e o dashboard exibe apenas o seu progresso.
+        </p>
       </form>
     </section>
   )

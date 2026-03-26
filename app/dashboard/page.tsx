@@ -94,8 +94,10 @@ export default function DashboardPage() {
     <main className="page-shell">
       <section className="hero">
         <p className="eyebrow">Dashboard</p>
-        <h1>Visao rapida do seu progresso.</h1>
-        <p>Use essa pagina para acompanhar volume, pendencias e taxa de conclusao das suas tarefas.</p>
+        <h1>Seu progresso em um relance.</h1>
+        <p className="hero-lead">
+          Acompanhe volume, pendencias e taxa de conclusao sem perder o contexto das suas tarefas.
+        </p>
       </section>
 
       <section className="panel">

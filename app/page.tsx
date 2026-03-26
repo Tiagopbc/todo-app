@@ -8,6 +8,27 @@ import TaskList from '@/components/TaskList'
 import { supabase } from '@/lib/supabaseClient'
 import type { Task, TaskStats } from '@/lib/tasks'
 
+const landingHighlights = [
+  {
+    title: 'Privacidade por usuario',
+    description: 'Cada conta acessa somente as tarefas que pertencem ao proprio espaco de trabalho.',
+  },
+  {
+    title: 'Acoes em segundos',
+    description: 'Criacao, conclusao e exclusao acontecem no mesmo fluxo, sem sair da tela principal.',
+  },
+  {
+    title: 'Visao de progresso',
+    description: 'O dashboard resume totais, pendencias e taxa de conclusao para facilitar decisoes.',
+  },
+] as const
+
+const onboardingSteps = [
+  'Crie sua conta ou entre com email e senha.',
+  'Adicione tarefas, marque o que foi concluido e remova o que nao faz mais sentido.',
+  'Abra o dashboard quando quiser enxergar o andamento do dia.',
+] as const
+
 function getErrorMessage(body: unknown, fallback: string) {
   if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string') {
     return body.error
@@ -318,9 +339,12 @@ export default function Home() {
   if (isLoading) {
     return (
       <main className="page-shell">
-        <section className="hero">
-          <p className="eyebrow">Lista de tarefas</p>
+        <section className="hero hero-primary">
+          <p className="eyebrow">Preparando o ambiente</p>
           <h1>Carregando sua area de trabalho...</h1>
+          <p className="hero-lead">
+            Estamos conferindo sua sessao e organizando o painel para mostrar apenas o que importa.
+          </p>
         </section>
       </main>
     )
@@ -328,23 +352,70 @@ export default function Home() {
 
   return (
     <main className="page-shell">
-      <section className="hero">
-        <p className="eyebrow">Desafio</p>
-        <h1>
-          Cada usuario visualiza apenas as proprias tarefas, marca itens como concluidos,
-          remove registros e acompanha o progresso no dashboard.
-        </h1>
-      </section>
-
       {!session ? (
-        <AuthPanel
-          onAuthenticated={async () => {
-            setError(null)
-            await refreshTasks()
-          }}
-        />
+        <section className="hero-layout">
+          <section className="hero hero-primary">
+            <p className="eyebrow">Todo App com Supabase</p>
+            <h1>Organize o dia sem perder o que ja foi feito.</h1>
+            <p className="hero-lead">
+              Cada usuario acessa apenas as proprias tarefas, conclui itens em segundos
+              e acompanha o progresso no dashboard sem sair do fluxo.
+            </p>
+
+            <div className="hero-pills" aria-label="Principais beneficios">
+              <span className="hero-pill">Login seguro</span>
+              <span className="hero-pill">Tarefas isoladas por usuario</span>
+              <span className="hero-pill">Dashboard de progresso</span>
+            </div>
+
+            <div className="feature-grid">
+              {landingHighlights.map((highlight) => (
+                <article className="feature-card" key={highlight.title}>
+                  <p>{highlight.title}</p>
+                  <strong>{highlight.description}</strong>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <div className="hero-sidebar">
+            <AuthPanel
+              onAuthenticated={async () => {
+                setError(null)
+                await refreshTasks()
+              }}
+            />
+
+            <section className="panel panel-muted">
+              <div className="panel-header panel-header-compact">
+                <div>
+                  <p className="eyebrow">Como funciona</p>
+                  <h2>Um fluxo simples para entrar e produzir</h2>
+                </div>
+              </div>
+
+              <ol className="step-list">
+                {onboardingSteps.map((step, index) => (
+                  <li className="step-item" key={step}>
+                    <span className="step-index">{index + 1}</span>
+                    <p>{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          </div>
+        </section>
       ) : (
         <>
+          <section className="hero hero-compact">
+            <p className="eyebrow">Painel pessoal</p>
+            <h1>Sua rotina, organizada em um so lugar.</h1>
+            <p className="hero-lead">
+              Adicione tarefas rapidamente, acompanhe o que ja foi concluido
+              e abra o dashboard quando quiser uma leitura mais analitica do progresso.
+            </p>
+          </section>
+
           <section className="panel">
             <div className="panel-header">
               <div>
