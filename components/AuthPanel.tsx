@@ -32,7 +32,8 @@ export default function AuthPanel({ onAuthenticated }: AuthPanelProps) {
         const { data, error: signUpError } = await supabase.auth.signUp(credentials)
 
         if (signUpError) {
-          throw signUpError
+          setError(signUpError.message)
+          return
         }
 
         if (data.session) {
@@ -49,7 +50,8 @@ export default function AuthPanel({ onAuthenticated }: AuthPanelProps) {
       const { error: signInError } = await supabase.auth.signInWithPassword(credentials)
 
       if (signInError) {
-        throw signInError
+        setError(signInError.message)
+        return
       }
 
       await onAuthenticated()
